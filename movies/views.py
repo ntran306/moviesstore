@@ -1,8 +1,10 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from .models import Movie, Review
 from django.contrib.auth.decorators import login_required
+from django.views.decorators.http import require_POST
 from django.core.paginator import Paginator
 from django.shortcuts import render
+from likes.models import ReviewLike
 
 def top_comments(request):
     qs = (Review.objects
@@ -77,3 +79,17 @@ def delete_review(request, id, review_id):
         user=request.user)
     review.delete()
     return redirect('movies.show', id=id)
+
+@login_required
+@require_POST
+def like_review(request, review_id):
+    review = get_object_or_404(Review, id=review_id)
+    ReviewLike.objects.get_or_create(review=review, user=request.user)
+    return redirect(request.META.get('HTTP_REFERER') or '/')
+
+@login_required
+@require_POST
+def unlike_review(request, review_id):
+    review = get_object_or_404(Review, id=review_id)
+    ReviewLike.objects.filter(review=review, user=request.user).delete()
+    return redirect(request.META.get('HTTP_REFERER') or '/')
