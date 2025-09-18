@@ -9,18 +9,15 @@
         <hr />
         <p><b>Description:</b> {{ template_data.movie.description }}</p>
         <p><b>Price:</b> ${{ template_data.movie.price }}</p>
-        <p class="mb-1">Movie likes: {{ movie.likes.count }}</p>
-        <!-- Like Button for Movies -->
+        <p class="mb-1">Movie likes: {{ template_data.movie.likes.count }}</p>
         {% if user.is_authenticated %}
-        {% with liked=movie.likes.filter(user=request.user).exists %}
-            <form method="post"
-                action="{% if liked %}{% url 'likes.unlike_movie' movie.id %}{% else %}{% url 'likes.like_movie' movie.id %}{% endif %}">
+        <form method="post"
+                action="{% if movie_liked %}{% url 'movies.unlike_movie' template_data.movie.id %}{% else %}{% url 'movies.like_movie' template_data.movie.id %}{% endif %}">
             {% csrf_token %}
-            <button class="btn btn-sm {% if liked %}btn-outline-danger{% else %}btn-outline-primary{% endif %}">
-                {% if liked %}Unlike Movie{% else %}Like Movie{% endif %}
+            <button class="btn btn-sm {% if movie_liked %}btn-outline-danger{% else %}btn-outline-primary{% endif %}">
+            {% if movie_liked %}Unlike Movie{% else %}Like Movie{% endif %}
             </button>
-            </form>
-        {% endwith %}
+        </form>
         {% else %}
         <a class="btn btn-sm btn-outline-secondary" href="{% url 'accounts.login' %}">Log in to like</a>
         {% endif %}
