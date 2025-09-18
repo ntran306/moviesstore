@@ -1,6 +1,21 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from .models import Movie, Review
 from django.contrib.auth.decorators import login_required
+from django.core.paginator import Paginator
+from django.shortcuts import render
+
+def top_comments(request):
+    qs = (Review.objects
+          .select_related('user', 'movie')
+          .order_by('-date'))
+    paginator = Paginator(qs, 10)  # Show 10 comments per page
+    page_obj = paginator.get_page(request.GET.get('page'))
+    template_data = {
+        'title': 'Top Comments',
+        'page_obj': page_obj,
+    }
+    return render(request, 'movies/top_comments.html', {'template_data': template_data})
+
 
 def index(request):
     search_term = request.GET.get('search')
