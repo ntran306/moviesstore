@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>{{ template_data.title }}</h1>
+
+{% if template_data.current %}
+<p><strong>Current question:</strong> {{ template_data.current.question.text }}</p>
+{% endif %}
+
+<form method="post">
+  {% csrf_token %}
+  {{ template_data.form.as_p }}
+  <button type="submit" class="btn btn-primary">Save</button>
+</form>
+{% endblock %}
