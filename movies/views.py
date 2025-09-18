@@ -4,7 +4,7 @@ from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_POST
 from django.core.paginator import Paginator
 from django.shortcuts import render
-from likes.models import ReviewLike
+from likes.models import ReviewLike, MovieLike
 
 def top_comments(request):
     qs = (Review.objects
@@ -34,12 +34,29 @@ def index(request):
 def show(request, id):
     movie = Movie.objects.get(id=id)
     reviews = Review.objects.filter(movie=movie)
+
+    # added in movie likes
+    movie_liked = False
+    liked_reviews = set()
+    if request.user.is_authenticated:
+        movie_liked = MovieLike.objects.filter(movie=movie, user=request.user).exists()
+        liked_reviews = set(
+            ReviewLike.objects
+                      .filter(review__in=reviews, user=request.user)
+                      .values_list('review_id', flat=True)
+        )
+
     template_data = {}
     template_data['title'] = movie.name
     template_data['movie'] = movie
     template_data['reviews'] = reviews
-    return render(request, 'movies/show.html',
-                  {'template_data': template_data})
+
+    return render(request, 'movies/show.html', {
+        'template_data': template_data,
+        'movie_liked': movie_liked,
+        'liked_reviews': liked_reviews,
+    })
+
 
 @login_required
 def create_review(request, id):
