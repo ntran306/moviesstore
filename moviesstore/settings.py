@@ -79,13 +79,16 @@ WSGI_APPLICATION = 'moviesstore.wsgi.application'
 # https://docs.djangoproject.com/en/5.0/ref/settings/#databases
 
 DATABASES = {
-    'default': {
+    'default': { # needed to change this by looking it up to use mysql on pythonanywhere
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'moviesstore',
-        'USER': 'root',
-        'PASSWORD': '',
-        'HOST': 'localhost',
+        'NAME': 'ntran306$moviesstore',
+        'USER': 'ntran306',
+        'PASSWORD': 'test1234',
+        'HOST': 'ntran306.mysql.pythonanywhere-services.com',
         'PORT': '3306',
+        'OPTIONS': {
+            'init_command': "SET sql_mode='STRICT_TRANS_TABLES'",
+        },
     }
 }
 
