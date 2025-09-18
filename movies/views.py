@@ -110,3 +110,17 @@ def unlike_review(request, review_id):
     review = get_object_or_404(Review, id=review_id)
     ReviewLike.objects.filter(review=review, user=request.user).delete()
     return redirect(request.META.get('HTTP_REFERER') or '/')
+
+@login_required
+@require_POST
+def like_movie(request, id):
+    movie = get_object_or_404(Movie, id=id)
+    MovieLike.objects.get_or_create(movie=movie, user=request.user)
+    return redirect('movies.show', id=id)
+
+@login_required
+@require_POST
+def unlike_movie(request, id):
+    movie = get_object_or_404(Movie, id=id)
+    MovieLike.objects.filter(movie=movie, user=request.user).delete()
+    return redirect('movies.show', id=id)
