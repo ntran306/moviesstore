@@ -55,29 +55,20 @@
                 </h6>
                 <p class="card-text">{{ review.comment }}</p>
                 <!-- Like Button for Comments -->
-                 <div class="d-flex align-items-center gap-3 mt-2">
+                <div class="d-flex align-items-center gap-3 mt-2">
                 <small class="text-muted mb-0">Likes: {{ review.likes.count }}</small>
 
                 {% if user.is_authenticated %}
-                    {% with liked=review.likes.filter(user=request.user).exists %}
                     <form class="mb-0" method="post"
-                            action="{% if liked %}{% url 'movies.unlike_review' review.id %}{% else %}{% url 'movies.like_review' review.id %}{% endif %}">
-                        {% csrf_token %}
-                        <button class="btn btn-link btn-sm p-0 align-baseline">
-                        {% if liked %}Unlike{% else %}Like{% endif %}
-                        </button>
+                        action="{% if review.id in liked_reviews %}{% url 'movies.unlike_review' review.id %}{% else %}{% url 'movies.like_review' review.id %}{% endif %}">
+                    {% csrf_token %}
+                    <button class="btn btn-link btn-sm p-0 align-baseline">
+                        {% if review.id in liked_reviews %}Unlike{% else %}Like{% endif %}
+                    </button>
                     </form>
-                    {% endwith %}
                 {% endif %}
                 </div>
-                {% if user.is_authenticated and user == review.user %}
-                <a class="btn btn-primary" 
-                    href="{% url 'movies.edit_review' id=template_data.movie.id review_id=review.id %}">Edit
-                </a>
-                <a class="btn btn-danger"
-                    href="{% url 'movies.delete_review' id=template_data.movie.id review_id=review.id %}">Delete
-                </a>
-                {% endif %}
+
             </li>
             {% endfor %}
         </ul>
