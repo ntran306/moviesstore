@@ -87,7 +87,7 @@ DATABASES = {
         'ENGINE': 'django.db.backends.mysql',
         'NAME': 'ntran306$moviesstore',
         'USER': 'ntran306',
-        'PASSWORD': 'test1234',
+        'PASSWORD': 'hibob123',
         'HOST': 'ntran306.mysql.pythonanywhere-services.com',
         'PORT': '3306',
         'OPTIONS': {

@@ -1,7 +1,18 @@
 {% extends 'base.html' %}
 {% block content %}
 {% load static %}
-{% load petition_filters %}
+{% if petition.id in user_votes %}
+  {% if user_votes|get_item:petition.id %}
+    <p class="text-center mb-2">
+      <span class="badge bg-info">You voted Yes</span>
+    </p>
+  {% else %}
+    <p class="text-center mb-2">
+      <span class="badge bg-secondary">You voted No</span>
+    </p>
+  {% endif %}
+{% endif %}
+
 <div class="p-3">
   <div class="container">
     <!-- Header Section -->
