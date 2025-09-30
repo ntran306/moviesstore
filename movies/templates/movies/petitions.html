@@ -34,7 +34,7 @@
             <h4 class="mb-0">Request a New Movie</h4>
           </div>
           <div class="card-body">
-            <form method="post" id="petitionForm">
+            <form method="post" action="{% url 'create_petition' %}" id="petitionForm">
               {% csrf_token %}
               <input type="hidden" name="create_petition" value="1">
 
