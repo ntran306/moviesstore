@@ -39,3 +39,15 @@
     width: fit-content;
     max-height: 400px;
 }
+.petition-progress {
+    height: 25px;
+}
+
+.petition-card {
+    margin-bottom: 1rem;
+}
+
+.vote-badge {
+    padding: 10px 15px;
+    font-size: 1.5rem;
+}

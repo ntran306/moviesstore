@@ -1,6 +1,7 @@
 from django.shortcuts import render, redirect, get_object_or_404
-from .models import Movie, Review
+from .models import Movie, Review, MoviePetition, PetitionVote
 from django.contrib.auth.decorators import login_required
+from django.contrib import messages
 from django.views.decorators.http import require_POST
 from django.core.paginator import Paginator
 from django.shortcuts import render
@@ -124,3 +125,93 @@ def unlike_movie(request, id):
     movie = get_object_or_404(Movie, id=id)
     MovieLike.objects.filter(movie=movie, user=request.user).delete()
     return redirect('movies.show', id=id)
+
+@login_required
+def petition_list(request):
+    petitions = MoviePetition.objects.all()
+
+    user_votes = {}
+    if request.user.is_authenticated:
+        votes = PetitionVote.objects.filter(user=request.user)
+        user_votes = {vote.petition_id: vote.vote_type for vote in votes}
+
+    context = {
+        'petitions': petitions,
+        'user_votes': user_votes
+    }
+    return render(request, 'movies/petitions.html', context)
+
+@login_required
+def create_petition(request):
+    if request.method == 'POST': 
+        movie_title = request.POST.get('movie_title', '').strip()
+        description = request.POST.get('description', '').strip()
+
+        if movie_title and description and len(description):
+            MoviePetition.objects.create(
+                movie_title=movie_title,
+                description=description,
+                creator=request.user
+            )
+            messages.success(request, f'Petition for "{movie_title}" created successfully!')
+            return redirect('petition_list')
+        else:
+            messages.error(request, 'Please fill in all fields. Description must be at least 20 characters.')
+
+        return render(request, 'movies/create_petition.html')
+    
+@login_required
+def vote_petition(request, petition_id):
+    petition = get_object_or_404(MoviePetition, id=petition_id)
+
+    if request.method == 'POST':
+        vote_type_str = request.POST.get('vote_type')
+
+        if vote_type_str not in ['yes', 'no']:
+            messages.error(request, 'Invalid vote type.')
+            return redirect('petition_list')
+        
+        vote_type = (vote_type_str == 'yes')
+
+        existing_vote = PetitionVote.objects.filter(
+            petition=petition,
+            user=request.user
+        ).first()
+
+        if existing_vote:
+            if existing_vote.vote_type != vote_type:
+                # Remove old vote count
+                if existing_vote.vote_type:
+                    petition.yes_votes -= 1
+                else:
+                    petition.no_votes -= 1
+                
+                # Add new vote count
+                if vote_type:
+                    petition.yes_votes += 1
+                else:
+                    petition.no_votes += 1
+
+                # Update the vote
+                existing_vote.vote_type = vote_type
+                existing_vote.save()
+                petition.save()
+                messages.success(request, 'Your vote has been updated!')
+            else:
+                messages.info(request, 'You have already voted this way')
+        else:
+            PetitionVote.objects.create(
+                petition=petition,
+                user=request.user,
+                vote_type=vote_type
+            )
+
+            if vote_type:
+                petition.yes_votes += 1
+            else:
+                petition.no_votes += 1
+            petition.save()
+
+            vote_msg = "Yes" if vote_type else "No"
+            messages.success(request, f'You voted {vote_msg} on this petition')
+    return redirect('petition_list')

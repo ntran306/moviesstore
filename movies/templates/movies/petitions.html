@@ -1,0 +1,210 @@
+{% extends 'base.html' %}
+{% block content %}
+{% load static %}
+{% load petition_filters %}
+<div class="p-3">
+  <div class="container">
+    <!-- Header Section -->
+    <div class="row mt-3">
+      <div class="col mx-auto mb-3">
+        <h2>Movie Petitions</h2>
+        <hr />
+        
+        {% if messages %}
+          {% for message in messages %}
+          <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+          </div>
+          {% endfor %}
+        {% endif %}
+        
+        <div class="alert alert-info">
+          <strong>How it works:</strong> Request movies you'd like to see in our catalog. Other users can vote on your requests!
+        </div>
+      </div>
+    </div>
+
+    <!-- CREATE PETITION FORM -->
+    <div class="row mb-4">
+      <div class="col-md-12">
+        <div class="card">
+          <div class="card-header bg-dark text-white">
+            <h4 class="mb-0">Request a New Movie</h4>
+          </div>
+          <div class="card-body">
+            <form method="post" id="petitionForm">
+              {% csrf_token %}
+              <input type="hidden" name="create_petition" value="1">
+              
+              <div class="row">
+                <div class="col-md-6 mb-3">
+                  <label for="movie_title" class="form-label">
+                    Movie Title <span class="text-danger">*</span>
+                  </label>
+                  <input type="text" 
+                         class="form-control" 
+                         id="movie_title" 
+                         name="movie_title" 
+                         required
+                         placeholder="e.g., Inception"
+                         maxlength="200">
+                </div>
+                
+                <div class="col-md-6 mb-3">
+                  <label for="description" class="form-label">
+                    Why should we add this? <span class="text-danger">*</span>
+                  </label>
+                  <textarea class="form-control" 
+                            id="description" 
+                            name="description" 
+                            rows="3" 
+                            required 
+                            placeholder="Tell us why this movie is great..."
+                            minlength="20"></textarea>
+                  <div class="form-text">
+                    <span id="charCount">0</span> / 20 characters minimum
+                  </div>
+                </div>
+              </div>
+              
+              <button type="submit" class="btn bg-dark text-white">
+                Submit Petition
+              </button>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- EXISTING PETITIONS LIST -->
+    <div class="row mt-4">
+      <div class="col-md-12 mb-3">
+        <h3>All Petitions</h3>
+        <hr />
+      </div>
+    </div>
+
+    <div class="row">
+      {% if petitions %}
+        {% for petition in petitions %}
+        <div class="col-md-6 col-lg-4 mb-3">
+          <div class="card h-100">
+            <div class="card-body">
+              <h5 class="card-title">{{ petition.movie_title }}</h5>
+              <p class="card-text">{{ petition.description }}</p>
+              <p class="text-muted">
+                <small>
+                  Requested by <strong>{{ petition.creator.username }}</strong><br>
+                  {{ petition.created_at|date:"M d, Y" }}
+                </small>
+              </p>
+              
+              <!-- Vote Display -->
+              <div class="text-center mb-3">
+                <div class="row">
+                  <div class="col-6">
+                    <div class="bg-success text-white p-2 rounded">
+                      <h4 class="mb-0">{{ petition.yes_votes }}</h4>
+                      <small>Support</small>
+                    </div>
+                  </div>
+                  <div class="col-6">
+                    <div class="bg-danger text-white p-2 rounded">
+                      <h4 class="mb-0">{{ petition.no_votes }}</h4>
+                      <small>Oppose</small>
+                    </div>
+                  </div>
+                </div>
+                
+                {% if petition.total_votes > 0 %}
+                <div class="progress mt-2">
+                <div class="progress-bar bg-success" 
+                    role="progressbar" 
+                    data-percentage="{{ petition.approval_percentage }}"
+                    style="width: 0%">
+                    <span class="percentage-text">{{ petition.approval_percentage }}%</span>
+                </div>
+                </div>
+                {% endif %}
+              </div>
+              
+              <!-- Vote Status -->
+              {% if petition.id in user_votes %}
+                {% if user_votes|get_item:petition.id %}
+                  <p class="text-center mb-2">
+                    <span class="badge bg-info">You voted Yes</span>
+                  </p>
+                {% else %}
+                  <p class="text-center mb-2">
+                    <span class="badge bg-secondary">You voted No</span>
+                  </p>
+                {% endif %}
+                <small class="d-block text-center text-muted mb-2">Change your vote:</small>
+              {% endif %}
+              
+              <!-- Vote Buttons -->
+              <form method="post" action="{% url 'vote_petition' petition.id %}">
+                {% csrf_token %}
+                <div class="d-grid gap-2">
+                  <button type="submit" 
+                          name="vote_type" 
+                          value="yes" 
+                          class="btn btn-success">
+                    Support
+                  </button>
+                  <button type="submit" 
+                          name="vote_type" 
+                          value="no" 
+                          class="btn btn-outline-danger">
+                    Oppose
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+        {% endfor %}
+      {% else %}
+        <div class="col-md-12">
+          <div class="card text-center p-5">
+            <div class="card-body">
+              <h3>No Petitions Yet</h3>
+              <p class="text-muted">Be the first to request a movie using the form above!</p>
+            </div>
+          </div>
+        </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Character counter
+    const desc = document.getElementById('description');
+    const count = document.getElementById('charCount');
+    
+    if (desc && count) {
+        desc.addEventListener('input', function() {
+            count.textContent = this.value.length;
+            if (this.value.length >= 20) {
+                count.style.color = 'green';
+            } else {
+                count.style.color = 'red';
+            }
+        });
+    }
+    
+    // Animate progress bars
+    document.querySelectorAll('.progress-bar').forEach(function(bar) {
+        const percentage = bar.getAttribute('data-percentage');
+        if (percentage) {
+            setTimeout(function() {
+                bar.style.width = percentage + '%';
+            }, 100);
+        }
+    });
+});
+</script>
+{% endblock content %}
