@@ -13,7 +13,8 @@
                     <div class="col-auto">
                         <div class="input-group col-auto">
                             <div class="input-group-text">
-                                Search</div>
+                                Search
+                            </div>
                             <input type="text" class="form-control"
                                 name="search">
                         </div>
@@ -21,6 +22,13 @@
                     <div class="col-auto">
                         <button class="btn bg-dark text-white"
                             type="submit">Search</button>
+                    </div>
+                    <!-- Petition Button -->
+                    <div class="col-auto">
+                        <a href="{% url 'petition_list' %}" 
+                           class="btn bg-dark text-white">
+                            View Petitions
+                        </a>
                     </div>
                 </div>
             </form>
