@@ -41,7 +41,7 @@ class MoviePetition(models.Model):
     def approval_percentage(self):
         if self.total_votes == 0:
             return 0
-        return round((self.yes_votes / self.total_votes * 100, 1))
+        return round(self.yes_votes / self.total_votes * 100, 1)
 
 class PetitionVote(models.Model):
     petition = models.ForeignKey(MoviePetition, on_delete=models.CASCADE, related_name='votes')

@@ -128,26 +128,33 @@ def unlike_movie(request, id):
 
 @login_required
 def petition_list(request):
-    petitions = MoviePetition.objects.all()
+    petitions = MoviePetition.objects.all().order_by('-created_at')
 
+    # Build a dict of user votes quickly
     user_votes = {}
     if request.user.is_authenticated:
         votes = PetitionVote.objects.filter(user=request.user)
         user_votes = {vote.petition_id: vote.vote_type for vote in votes}
 
+    # Attach the user's vote (True/False/None) to each petition object
+    # so templates can use `petition.user_vote` safely.
+    for p in petitions:
+        p.user_vote = user_votes.get(p.id)  # None if not voted, or True/False
+
     context = {
         'petitions': petitions,
-        'user_votes': user_votes
     }
     return render(request, 'movies/petitions.html', context)
 
+
 @login_required
 def create_petition(request):
-    if request.method == 'POST': 
+    if request.method == 'POST':
         movie_title = request.POST.get('movie_title', '').strip()
         description = request.POST.get('description', '').strip()
 
-        if movie_title and description and len(description):
+        # ensure description is at least 20 chars
+        if movie_title and description and len(description) >= 20:
             MoviePetition.objects.create(
                 movie_title=movie_title,
                 description=description,
@@ -157,8 +164,10 @@ def create_petition(request):
             return redirect('petition_list')
         else:
             messages.error(request, 'Please fill in all fields. Description must be at least 20 characters.')
+            return redirect('petition_list')
 
-        return render(request, 'movies/create_petition.html')
+    # For non-POST, redirect to petition list
+    return redirect('petition_list')
     
 @login_required
 def vote_petition(request, petition_id):
